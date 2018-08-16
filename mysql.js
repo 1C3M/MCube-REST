@@ -113,7 +113,7 @@ class MCubeDB {
     async getGoogleTokenFromUserID ( user_id="" ) {
         const select_query = "SELECT google FROM tokens WHERE user_id=?";
         try {
-            return await this.connection.execute(select_query, [user_id]);
+            return (await this.connection.execute(select_query, [user_id]))[0][0].google;
         } catch (err) {
             this.status = StatusEnum.ERROR;
             this.message = err;

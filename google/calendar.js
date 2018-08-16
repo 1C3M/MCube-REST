@@ -10,16 +10,14 @@ class Calendar {
         });
     }
 
-    /*
-    async getCalendarList() {
-        const res = await this.google_calendar.calendarList.list({ auth: client.oAuth2Client});
-        return res.data;
-    }
-    */
     async getTopSchedules(count) {
         logger.log({level:"info", message: `call calendar.getTopSchedules count:${count}`});
-        const res = await this.google_calendar.events.lists({ userId: "me", });
-        return res.data;
+        try {
+            const res = await this.google_calendar.events.list({calendarId: "me",});
+            return res.data;
+        } catch (err) {
+            throw err;
+        }
     }
 
 }

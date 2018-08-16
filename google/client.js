@@ -1,29 +1,21 @@
-/**
- * This is used by several samples to easily provide an oauth2 workflow.
- */
-/**
- * This is used by several samples to easily provide an oauth2 workflow.
- */
+const fs = require("fs");
+const path = require("path");
+const {google} = require("googleapis");
+const {MCubeDB, StatusEnum} = require("../mysql.js");
+const logger = require("../logger.js");
 
-const {google} = require('googleapis');
-const readline = require('readline');
-const fs = require('fs');
-const path = require('path');
-const auth_path = 'auth_path';
+const db = new MCubeDB();
+db.connect();
 
-const TOKEN_PATH = path.join(__dirname, auth_path+'/credentials.json');
-const keyPath = path.join(__dirname, auth_path+'/client_secret.json');
-
-let keys = { redirect_uris: [''] };
-if (fs.existsSync(keyPath)) {
-    keys = require(keyPath).installed;
+const server_key_path = path.join(__dirname,"../../auth_path/client_secret_MCube.json");
+let keys;
+if (fs.existsSync(server_key_path)) {
+    keys = JSON.parse(fs.readFileSync(server_key_path, "utf-8"));
+    keys = keys.web;
 }
-
 class Client {
-    constructor (options) {
-        this._options = options || { scopes: [] };
-
-        // create an oAuth client to authorize the API call
+    constructor (userid="") {
+        this.userid = userid;
         this.oAuth2Client = new google.auth.OAuth2(
             keys.client_id,
             keys.client_secret,
@@ -31,49 +23,28 @@ class Client {
         );
     }
 
-    // Open an http server to accept the oauth callback. In this
-    // simple example, the only request to our webserver is to
-    // /oauth2callback?code=<code>
-    async authenticate (scopes) {
-        return new Promise((resolve, reject) => {
-            if (fs.existsSync(TOKEN_PATH)) {
-                let credentials = require(TOKEN_PATH);
-                this.oAuth2Client.setCredentials(credentials);
-                resolve(this.oAuth2Client);
-                return;
-            }
-            let authorizeUrl = this.oAuth2Client.generateAuthUrl({
-                access_type: 'offline',
-                scope: scopes,
-            });
-            console.log('Authorize this app by visiting this url:', authorizeUrl);
-            const rl = readline.createInterface({
-                input: process.stdin,
-                output: process.stdout,
-            });
-            rl.question('Enter the code frome that page here: ', (code) =>{
-                rl.close();
-                this.oAuth2Client.getToken(code, (err, token) => {
-                    if (err) return reject(err);
-                    this.oAuth2Client.setCredentials(token);
-                    fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
-                        if(err) return console.error(err);
-                        console.log('Token stored to', TOKEN_PATH);
-                    });
-                    resolve(this.oAuth2Client);
-                })
-            });
-            // grab the url that will be used for authorization
-        });
+    async connect () {
+        this.oAuth2Client.credentials = await this.getCredential(this.userid);
+        return await this.oAuth2Client;
+    }
+
+    async getCredential (userid="") {
+        try{
+            if (db.status !== StatusEnum.READY) await db.connect();
+            return JSON.parse(await db.getGoogleTokenFromUserID(userid));
+        }
+        catch (err) {
+            logger.error(err);
+            return err;
+        }
     }
 }
 
-let client = new Client();
-
+let client = new Client("mcube123");
+client.connect();
 const scopes = [
-    'https://www.googleapis.com/auth/gmail.readonly',
-    'https://www.googleapis.com/auth/calendar.readonly'
+    "https://www.googleapis.com/auth/gmail.readonly",
+    "https://www.googleapis.com/auth/calendar.readonly"
 ];
-client.authenticate(scopes);
 
-module.exports = client;
+module.exports = {client, scopes};

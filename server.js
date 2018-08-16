@@ -1,6 +1,6 @@
 const restify = require("restify");
 const logger = require("./logger");
-const gmail = require("./routes//gmail");
+const gmail = require("./routes/gmail");
 const calendar = require("./routes/calendar");
 //const token = require("./routes/token");
 
