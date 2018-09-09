@@ -1,3 +1,4 @@
+const logger = require("../logger");
 const calendar = require("../google/calendar");
 
 const routes = (req, res) => {

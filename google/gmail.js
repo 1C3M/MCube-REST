@@ -22,14 +22,15 @@ class Gmail {
                     id: messages[i].id
                 }, "full");
                 results.push({
-                    snippet: message.data.snippet,
-                    from: message.data.payload.headers.filter((header) => { return header.name === "From"; })[0].value
+                    subject: message.data.payload.headers.filter((header) => { return header.name === "Subject"; })[0].value,
+                    from: message.data.payload.headers.filter((header) => { return header.name === "From"; })[0].value,
+                    date: message.data.payload.headers.filter((header) => { return header.name === "Date"})[0].value
                 });
             }
             logger.log({level:"info", message: `end gmail.getTopMessages count:${count}`});
             return results;
         } catch (err) {
-            logger.log(err);
+            logger.error(err);
             throw err;
         }
     }
