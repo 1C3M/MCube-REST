@@ -1,11 +1,9 @@
 const fs = require("fs");
 const path = require("path");
 const {google} = require("googleapis");
-const {MCubeDB, StatusEnum} = require("../mysql.js");
+const {MCubedb, StatusEnum} = require("../mysql.js");
 const logger = require("../logger.js");
 
-const db = new MCubeDB();
-db.connect();
 const auth_path = "../../auth_path";
 const server_key_path = path.join(__dirname, auth_path+"/client_secret_MCube.json");
 let keys;
@@ -14,8 +12,8 @@ if (fs.existsSync(server_key_path)) {
     keys = keys.web;
 }
 class Client {
-    constructor (userid=String) {
-        this.userid = userid;
+    constructor (token) {
+        this.token = token;
         this.oAuth2Client = new google.auth.OAuth2(
             keys.client_id,
             keys.client_secret,
@@ -25,7 +23,8 @@ class Client {
 
     async connect () {
         try{
-            this.oAuth2Client.setCredentials(await this.getCredential(this.userid));
+            this.userid = await MCubedb.getUserIDFromMMToken(this.token);
+            this.oAuth2Client.setCredentials(await this.getCredential(await this.userid));
             return await this.oAuth2Client;
         }
         catch (err) {
@@ -34,10 +33,10 @@ class Client {
         }
     }
 
-    async getCredential (userid=String) {
+    async getCredential (userid="") {
         try{
-            if (db.status !== StatusEnum.READY) await db.connect();
-            return JSON.parse(await db.getGoogleTokenFromUserID(userid));
+            let data = await MCubedb.getGoogleTokenFromUserID(userid);
+            return JSON.parse(await data);
         }
         catch (err) {
             logger.error(err);
@@ -46,11 +45,9 @@ class Client {
     }
 }
 
-let client = new Client("mcube123");
-client.connect();
 const scopes = [
     "https://www.googleapis.com/auth/gmail.readonly",
     "https://www.googleapis.com/auth/calendar.readonly"
 ];
 
-module.exports = {client, scopes};
+module.exports = {Client, scopes};

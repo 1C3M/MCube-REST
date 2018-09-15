@@ -25,7 +25,7 @@ server.use(restify.plugins.bodyParser({mapParams:false}));
 
 server.get("/:token/gmail/:count", gmail);
 server.get("/:token/events/:count", calendar);
-server.post("/auth", auth);
+server.post("/:token/auth", auth);
 //server.get("/token/:token", token);
 /* For JaeHyun image Request, Don't remove */
 server.post("/image", (req, res) => {

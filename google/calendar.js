@@ -22,6 +22,4 @@ class Calendar {
 
 }
 
-let calendar = new Calendar();
-
-module.exports = calendar;
+module.exports = Calendar;

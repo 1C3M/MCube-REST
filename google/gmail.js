@@ -1,9 +1,13 @@
 const {google} = require("googleapis");
-const {client} = require("./client");
+const {Client} = require("./client");
 const logger = require("../logger.js");
 
 class Gmail {
-    constructor () {
+    constructor (client) {
+        this.setClient(client);
+    }
+
+    setClient (client) {
         this.google_gmail = google.gmail({
             version: "v1",
             auth: client.oAuth2Client
@@ -48,6 +52,4 @@ class Gmail {
 
 }
 
-let gmail = new Gmail();
-
-module.exports = gmail;
+module.exports = Gmail;
