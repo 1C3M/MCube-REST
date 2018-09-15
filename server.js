@@ -2,6 +2,7 @@ const restify = require("restify");
 const logger = require("./logger");
 const gmail = require("./routes/gmail");
 const calendar = require("./routes/calendar");
+const auth = require("./routes/auth");
 //const token = require("./routes/token");
 
 
@@ -24,6 +25,7 @@ server.use(restify.plugins.bodyParser({mapParams:false}));
 
 server.get("/:token/gmail/:count", gmail);
 server.get("/:token/events/:count", calendar);
+server.post("/auth", auth);
 //server.get("/token/:token", token);
 /* For JaeHyun image Request, Don't remove */
 server.post("/image", (req, res) => {
